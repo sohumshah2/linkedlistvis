@@ -1,0 +1,157 @@
+<script src='https://d3js.org/d3.v4.min.js'></script>
+
+
+
+
+<!-- highlighting arrows -->
+
+<svg height="1000" width="1000">
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="5" refY="5" 
+            markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" />
+    </marker>
+  </defs>
+</svg>
+
+<script>
+  var nodes = [6,4,1,9,3];
+  var currIndex = 2;
+
+  // Create a new <g> element for each data point
+  var node = d3.select('svg')
+    .selectAll('.node')
+    .data(nodes)
+    .enter()
+    .append('g')
+      .attr('class', 'node')
+      .attr('transform', function(d, i) {
+        return 'translate(' + i * 100 + ',0)';
+      });
+
+  // Append a new <circle> element to each <g> element
+  node.append('circle')
+      .attr('cx', 50)
+      .attr('cy', 50)
+      .attr('r', 40)
+      .attr('stroke', 'blue')
+      .attr('stroke-width', 3)
+    //   .attr('fill', 'cyan')
+
+      .attr('fill', function(d, i) {
+      return i === currIndex ? 'cyan' : 'white';
+    });
+    
+
+  // Append a new <text> element to each <g> element
+  node.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'black')
+      .attr('dy', '0.3em') // Adjust the vertical position of text
+      .attr('x', 50) // Position the text inside the circle
+      .attr('y', 50)
+      .attr('font-family', 'Arial')
+      .attr('font-size', 30)
+      .text(function(d) { return d; });
+
+       // Add lines between circles
+  node.filter(function(d, i) { return i < nodes.length - 1; }) // Only add lines for all except last node
+      .append('line')
+        .attr('x1', 90)
+        .attr('y1', 50)
+        .attr('x2', 108)
+        .attr('y2', 50)
+        .attr('stroke', 'black')
+        .attr('marker-end', 'url(#arrowhead)');
+
+    
+
+
+function update() {
+    // nodes.push(Math.floor(Math.random() * 10));
+    // nodes.shift();
+    currIndex = (currIndex + 1) % nodes.length;
+    
+
+    node.data(nodes)
+        .transition()
+        .duration(200)
+        .ease(d3.easeLinear)
+
+    node.select('circle')
+        .transition()
+        .duration(200)
+        .ease(d3.easeLinear)
+        .attr('fill', function(d, i) {
+            return i === currIndex ? 'cyan' : 'white';
+        });
+
+    node.select('text')
+        .text(function(d) {
+            return d;
+        });
+}
+
+setInterval(update, 1200);
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+<svg height="1000" width="1000"></svg>
+
+
+<script>
+
+    var nodes = [1111,22222,33333,4,5,6];
+
+    d3.select('svg')
+        .selectAll('circle')
+        .data(nodes)
+        .enter()
+
+
+        // .append('circle')
+        //     .attr('cx', 50)
+        //     .attr('cy', 50)
+        //     .attr('r', 40)
+        //     .attr('fill', 'blue')
+        //     .attr('transform', function(d, i) {
+        //     return "translate(0," + i * 100 + ")";
+        //   })
+        .append('rect')
+            .attr('x', 50)
+            .attr('y', 50)
+            .attr('width', 200)
+            .attr('height', 100)
+            .attr('fill', 'green')
+
+
+            
+        .append('text')
+            // .attr('text-anchor', 'middle')
+            .attr('fill', 'black')
+            .attr('dy', '.3em') // Adjust the vertical position of text
+            .text(function(d) { return d;})
+</script> -->
+
+
+</body>
+</html>
