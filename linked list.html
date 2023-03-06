@@ -14,16 +14,20 @@
   </defs>
 </svg>
 
+
 <script>
   var nodes = [6,4,1,9,3];
+  visusaliseNewNode(true);
   var currIndex = 2;
 
-  // Create a new <g> element for each data point
-  var node = d3.select('svg')
-    .selectAll('.node')
-    .data(nodes)
-    .enter()
-    .append('g')
+
+
+function visusaliseNewNode(isFirstRender) {
+  node = d3.select('svg')
+  .selectAll('.node')
+  .data(nodes)
+  .enter()
+  .append('g')
       .attr('class', 'node')
       .attr('transform', function(d, i) {
         return 'translate(' + i * 100 + ',0)';
@@ -54,45 +58,71 @@
       .attr('font-size', 30)
       .text(function(d) { return d; });
 
-       // Add lines between circles
-  node.filter(function(d, i) { return i < nodes.length - 1; }) // Only add lines for all except last node
-      .append('line')
-        .attr('x1', 90)
-        .attr('y1', 50)
-        .attr('x2', 108)
-        .attr('y2', 50)
-        .attr('stroke', 'black')
-        .attr('marker-end', 'url(#arrowhead)');
-
-    
-
-
-function update() {
-    // nodes.push(Math.floor(Math.random() * 10));
-    // nodes.shift();
-    currIndex = (currIndex + 1) % nodes.length;
-    
-
-    node.data(nodes)
-        .transition()
-        .duration(200)
-        .ease(d3.easeLinear)
-
-    node.select('circle')
-        .transition()
-        .duration(200)
-        .ease(d3.easeLinear)
-        .attr('fill', function(d, i) {
-            return i === currIndex ? 'cyan' : 'white';
-        });
-
-    node.select('text')
-        .text(function(d) {
-            return d;
-        });
+  // Add an arrow between the previous node and the current node
+  node.filter(function(d, i) { return !isFirstRender || i !== 0; }) // Don't add a line before the first node
+    .append('line')
+      .attr('x1', -9)
+      .attr('y1', 50)
+      .attr('x2', 8)
+      .attr('y2', 50)
+      .attr('stroke', 'black')
+      .attr('marker-end', 'url(#arrowhead)');
 }
 
-setInterval(update, 1200);
+
+function highlightNode(index, colour) {
+  node.data(nodes)
+  .select('circle')
+  .attr('fill', function(d, i) {
+    return i === index ? colour : 'white';
+  });
+}
+
+setTimeout(() => {
+  highlightNode(1, 'cyan');
+}, 1000)
+
+
+setTimeout(() => {
+  nodes.push(20);
+  visusaliseNewNode(false);
+}, 2000)
+
+setTimeout(() => {
+  nodes.push(50);
+  nodes.push(51);
+  nodes.push(52);
+  visusaliseNewNode(false);
+}, 3000)
+
+
+
+// function update() {
+//     // nodes.push(Math.floor(Math.random() * 10));
+//     // nodes.shift();
+//     currIndex = (currIndex + 1) % nodes.length;
+    
+
+//     node.data(nodes)
+//         .transition()
+//         .duration(200)
+//         .ease(d3.easeLinear)
+
+//     node.select('circle')
+//         .transition()
+//         .duration(200)
+//         .ease(d3.easeLinear)
+//         .attr('fill', function(d, i) {
+//             return i === currIndex ? 'cyan' : 'white';
+//         });
+
+//     node.select('text')
+//         .text(function(d) {
+//             return d;
+//         });
+// }
+
+// setInterval(update, 1200);
 
 
 </script>
