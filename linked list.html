@@ -21,6 +21,41 @@
   var currIndex = 2;
 
 
+  function visualiseRemovedNode() {
+  // Find the index of the removed node
+  var removedIndex = -1;
+  var newNodes = d3.selectAll('.node').data();
+  for (var i = 0; i < newNodes.length; i++) {
+    if (nodes.indexOf(newNodes[i]) === -1) {
+      removedIndex = i;
+      break;
+    }
+  }
+
+  // Remove the <g> element corresponding to the removed node
+  d3.select('svg')
+    .selectAll('.node')
+    .filter(function(d, i) { return i === removedIndex; })
+    .remove();
+    
+// Remove the arrow pointing to the removed node
+if (removedIndex === 0) {
+  d3.select('svg')
+    .selectAll('.node')
+    .filter(function(d, i) { return i === removedIndex; })
+    .select('line')
+    .remove();
+}
+
+  // Move all nodes and arrows after the removed node to the left
+  d3.selectAll('.node')
+    .attr('transform', function(d, i) {      
+        return 'translate(' + i * 100 + ',0)';
+    });
+}
+
+
+
 
 function visusaliseNewNode(isFirstRender) {
   node = d3.select('svg')
@@ -69,7 +104,6 @@ function visusaliseNewNode(isFirstRender) {
       .attr('marker-end', 'url(#arrowhead)');
 }
 
-
 function highlightNode(index, colour) {
   node.data(nodes)
   .select('circle')
@@ -78,109 +112,37 @@ function highlightNode(index, colour) {
   });
 }
 
+
+
+// Mock data changes
 setTimeout(() => {
   highlightNode(1, 'cyan');
 }, 1000)
 
 
 setTimeout(() => {
-  nodes.push(20);
-  visusaliseNewNode(false);
-}, 2000)
-
-setTimeout(() => {
-  nodes.push(50);
-  nodes.push(51);
-  nodes.push(52);
-  visusaliseNewNode(false);
-}, 3000)
+  console.log(nodes);
+  nodes.splice(1,1);
+  console.log(nodes);
+  visualiseRemovedNode();
+}, 1500)
 
 
+// setTimeout(() => {
+//   nodes.push(20);
+//   visusaliseNewNode(false);
+// }, 2000)
 
-// function update() {
-//     // nodes.push(Math.floor(Math.random() * 10));
-//     // nodes.shift();
-//     currIndex = (currIndex + 1) % nodes.length;
-    
-
-//     node.data(nodes)
-//         .transition()
-//         .duration(200)
-//         .ease(d3.easeLinear)
-
-//     node.select('circle')
-//         .transition()
-//         .duration(200)
-//         .ease(d3.easeLinear)
-//         .attr('fill', function(d, i) {
-//             return i === currIndex ? 'cyan' : 'white';
-//         });
-
-//     node.select('text')
-//         .text(function(d) {
-//             return d;
-//         });
-// }
-
-// setInterval(update, 1200);
+// setTimeout(() => {
+//   nodes.push(50);
+//   nodes.push(51);
+//   nodes.push(52);
+//   visusaliseNewNode(false);
+// }, 3000)
 
 
 </script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- 
-<svg height="1000" width="1000"></svg>
-
-
-<script>
-
-    var nodes = [1111,22222,33333,4,5,6];
-
-    d3.select('svg')
-        .selectAll('circle')
-        .data(nodes)
-        .enter()
-
-
-        // .append('circle')
-        //     .attr('cx', 50)
-        //     .attr('cy', 50)
-        //     .attr('r', 40)
-        //     .attr('fill', 'blue')
-        //     .attr('transform', function(d, i) {
-        //     return "translate(0," + i * 100 + ")";
-        //   })
-        .append('rect')
-            .attr('x', 50)
-            .attr('y', 50)
-            .attr('width', 200)
-            .attr('height', 100)
-            .attr('fill', 'green')
-
-
-            
-        .append('text')
-            // .attr('text-anchor', 'middle')
-            .attr('fill', 'black')
-            .attr('dy', '.3em') // Adjust the vertical position of text
-            .text(function(d) { return d;})
-</script> -->
 
 
 </body>
