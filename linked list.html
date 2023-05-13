@@ -1,195 +1,219 @@
-<script src='https://d3js.org/d3.v4.min.js'></script>
-
-
-
-
-<!-- highlighting arrows -->
-
-<svg height="1000" width="1000">
-  <defs>
-    <marker id="arrowhead" viewBox="0 0 10 10" refX="5" refY="5" 
-            markerWidth="10" markerHeight="10" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" />
-    </marker>
-  </defs>
-</svg>
-
-
-<script>
-  var nodes = [6,4,1,9,3];
-  visualiseNewNode(true);
-  var currIndex = 2;
-
-
-
-  function visualiseRemovedNode() {
-  // Find the index of the removed node
-  var removedIndex = -1;
-  var newNodes = d3.selectAll('.node').data();
-  for (var i = 0; i < newNodes.length; i++) {
-    if (nodes.indexOf(newNodes[i]) === -1) {
-      removedIndex = i;
-      break;
-    }
-  }
-
-  // Select the <g> element corresponding to the removed node
-  var removedNode = d3.select('svg')
-    .selectAll('.node')
-    .filter(function(d, i) { return i === removedIndex; });
-
-
-  // Animate the arrow fading out
-  d3.select('svg')
-  .selectAll('.node')
-  .filter(function(d, i) { return i === removedIndex; })
-  .select('line')
-  .transition()
-  .duration(500)
-  .attr('opacity', 0)
-
-   // Animate the text fading out
-   d3.select('svg')
-  .selectAll('.node')
-  .filter(function(d, i) { return i === removedIndex; })
-  .select('text')
-  .transition()
-  .duration(500)
-  .attr('opacity', 0)
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SVG.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
   
-  // Animate the node shrinking
-  removedNode.select('circle')
-    .transition()
-    .duration(500)
-    .attr('r', 0)
-    .on('end', function() {
-      // Remove the <g> element corresponding to the removed node
-      removedNode.remove();
-      
-      // Remove the arrow pointing to the removed node
-      if (removedIndex === 0) {
-        d3.select('svg')
-          .selectAll('.node')
-          .filter(function(d, i) { return i === removedIndex; })
-          .select('line')
-          .remove();
+  </head>
+  <body>
+  </body>
+
+  <script>
+    var draw = SVG().addTo('body').size(800, 500)
+    const circle_radius = 70;
+    const timeline = new SVG.Timeline();
+    timeline.persist(true);
+
+    const texts = [];
+    const lines = [];
+    const nodes = [];
+    const circles = [];
+
+    const loneNodes = [];
+    const loneCircles = [];
+    const loneTexts = [];
+
+    const variables = {};
+
+    // Define the arrowhead marker
+    const arrowhead = draw.marker(5, 10, function(add) {
+      add.path('M 0 0 L 5 5 L 0 10 z')
+        .fill('#000000');
+    });
+
+    // highlights a node by index
+    // not animating properly rn
+    function highlightNode(nodeId) {
+      let index = nodes.findIndex(node => node.nodeId === nodeId);
+      if (index >= 0 && index < circles.length) {
+        const circle = circles[index];
+        circle.opacity(0);
+        circle.fill('cyan');
+        circle.animate(1000, '<>').attr({ 'opacity': 1 });
+        // circle.animate(1000, '<>').attr({'fill': 'cyan'});
+        return;
       }
 
-      // Move all nodes and arrows after the removed node to the left
-      d3.selectAll('.node')
-        .transition()
-        .duration(500)
-        .attr('transform', function(d, i) {      
-          return 'translate(' + i * 100 + ',0)';
-        });
-    });
-}
+      index = loneNodes.findIndex(node => node.nodeId === nodeId);
+      if (index >= 0 && index < loneCircles.length) {
+        const circle = loneCircles[index];
+        circle.opacity(0);
+        circle.fill('cyan');
+        circle.animate(1000, '<>').attr({ 'opacity': 1 });
+        // circle.animate(1000, '<>').attr({'fill': 'cyan'});
+      }
+    }
 
-function visualiseNewNode(isFirstRender) {
-  node = d3.select('svg')
-  .selectAll('.node')
-  .data(nodes)
-  .enter()
-  .append('g')
-      .attr('class', 'node')
-      .attr('transform', function(d, i) {
-        return 'translate(' + i * 100 + ',0)';
+    // todo
+    // function highlightNode2(label, nodeId, isLoneNode) {
+    //   if (variables.hasOwnProperty(label)) {
+    //     variables[label].nodeId = nodeId;
+    //   }
+    //   else {
+    //     variables[label] = {
+    //       nodeId: nodeId,
+    //     }
+    //   }
+    // }
+
+    // creates a node and appends to end of list directly
+    function addNode(id, value, noAnimation) {
+      const newNode = draw.circle(circle_radius)
+      .timeline(timeline)
+        .move(nodes.length * 100 + 10, 100)
+        // .animate(1000, '<>')
+        .fill('white')
+        .stroke({color: '#000000', width: 3});
+
+      const newText = draw.text(value.toString())
+        .font({ size: 35, family: 'Verdana' })
+        .fill('#000000')
+        .center(newNode.cx(), newNode.cy())
+        
+      nodes.push({
+        nodeId: id,
+        value: value,
       });
+      circles.push(newNode);
+      texts.push(newText);
+      if (!noAnimation) {
+        newText.opacity(0);
+        circles[circles.length - 1].opacity(0);
+        circles[circles.length - 1].animate(1000).opacity(1);
+        texts[texts.length - 1].animate(1000).opacity(1);
+      }
 
-  // Append a new <circle> element to each <g> element
-  node.append('circle')
-      .attr('cx', 50)
-      .attr('opacity', 0)
-      .attr('cy', 50)
-      .attr('r', 40)
-      .attr('stroke', 'blue')
-      .attr('stroke-width', 3)
-      .attr('fill', 'white')
-      .transition()
-      .duration(1000) // Set the duration of the transition to 1 second (1000 milliseconds)
-      .attr('opacity', '1'); 
+      if (nodes.length > 1) {
+        const lastNode = circles[nodes.length - 2];
+        const newLine = draw.line(lastNode.cx() + circle_radius * 0.5, lastNode.cy(), newNode.cx() - circle_radius * 0.5 - 5, newNode.cy())
+          .stroke({ color: '#000000', width: 2 })
+          .marker('end', arrowhead)
+          lines.push(newLine);
+          if (!noAnimation) {
+            newLine.opacity(0);
+            newLine.animate(1000).opacity(1);
+          }
+      }
+    }
 
-      
+    function addLoneNode(id, value, noAnimation) {
+      const newNode = draw.circle(circle_radius)
+      .timeline(timeline)
+        .move(loneNodes.length * 100 + 10, 200)
+        // .animate(1000, '<>')
+        .fill('white')
+        .stroke({color: '#000000', width: 3});
 
-  // Append a new <text> element to each <g> element
-  node.append('text')
-      .attr('opacity', 0)
-      .attr('text-anchor', 'middle')
-      .attr('fill', 'black')
-      .attr('dy', '0.3em') // Adjust the vertical position of text
-      .attr('x', 50) // Position the text inside the circle
-      .attr('y', 50)
-      .attr('font-family', 'Arial')
-      .attr('font-size', 30)
-      .text(function(d) { return d; })
-      .transition()
-      .duration(1000) // Set the duration of the transition to 1 second (1000 milliseconds)
-      .attr('opacity', '1'); 
-
-      
-
-  // Add an arrow between the previous node and the current node
-  node.filter(function(d, i) { return !isFirstRender || i !== 0; }) // Don't add a line before the first node
-    .append('line')
-      .attr('opacity', 0)
-      .attr('x1', -9)
-      .attr('y1', 50)
-      .attr('x2', 8)
-      .attr('y2', 50)
-      .attr('stroke', 'black')
-      .attr('marker-end', 'url(#arrowhead)')
-      .transition()
-      .duration(1000) // Set the duration of the transition to 1 second (1000 milliseconds)
-      .attr('opacity', '1'); 
-
-}
-
-function highlightNode(index, colour) {
-  node.data(nodes)
-  .select('circle')
-  .attr('opacity', 0)
-  .transition()
-      .duration(1000) // Set the duration of the transition to 1 second (1000 milliseconds)
-      .attr('opacity', 1)
-  .attr('fill', function(d, i) {
-    return i === index ? colour : 'white';
-  })
- 
-}
+      const newText = draw.text(value.toString())
+      .font({ size: 35, family: 'Verdana' })
+      .fill('#000000')
+      .center(newNode.cx(), newNode.cy())
+        
+      loneNodes.push({
+        nodeId: id,
+        value: value,
+      });
+      loneCircles.push(newNode);
+      loneTexts.push(newText);
+      if (!noAnimation) {
+        newText.opacity(0);
+        loneCircles[loneCircles.length - 1].opacity(0);
+        loneCircles[loneCircles.length - 1].animate(1000).opacity(1);
+        loneTexts[loneTexts.length - 1].animate(1000).opacity(1);
+      }
+    }
 
 
+    // move a lone node to the end of list
+    function appendNode(nodeId) {
+      const index = loneNodes.findIndex(node => node.nodeId === nodeId);
+      // console.log(index);
+      if (index === -1) return;
+      const last_circle_x = circles[circles.length - 1].attr('cx');
 
-// Mock data changes
-setTimeout(() => {
-  highlightNode(3, 'cyan');
-}, 500)
+      loneCircles[index].animate(500, '<>').dmove(last_circle_x + 100 - loneCircles[index].attr('cx'), 0);
+      loneTexts[index].animate(500, '<>').dmove(last_circle_x + 100 - loneCircles[index].attr('cx'), 0).after(() => {
+        loneCircles[index].animate(500, '<>').dmove(0, -100);
+        loneTexts[index].animate(500, '<>').dmove(0, -100).after(() => {
+              
+          circles.push(loneCircles[index]);
+          texts.push(loneTexts[index]);
+          nodes.push(loneNodes[index]);
+          let newNode = loneCircles[index];
+          loneNodes.splice(index, 1);
+          loneCircles.splice(index, 1);
+          loneTexts.splice(index, 1);
+
+          if (nodes.length > 1) {
+            const lastNode = circles[nodes.length - 2];
+            const newLine = draw.line(lastNode.cx() + circle_radius * 0.5, lastNode.cy(), newNode.cx() - circle_radius * 0.5 - 5, newNode.cy())
+              .stroke({ color: '#000000', width: 2 })
+              .marker('end', arrowhead)
+            lines.push(newLine);
+            newLine.opacity(0);
+            newLine.animate(500).opacity(1);
+          }
+        });
+      })
+    }
 
 
-setTimeout(() => {
-  console.log(nodes);
-  nodes.splice(2,1);
-  console.log(nodes);
-  visualiseRemovedNode();
-}, 1500)
+    // mock changes
+    addNode('a', 1, true);
+    addNode('b', 2, true);
+    addNode('c', 3, true);
+    addNode('d', 4, true);
+    // console.log(nodes);
+
+    setTimeout(() => {
+      // highlightNode('b');
+      addLoneNode('e', 5, false);
+    }, 500)
+
+    setTimeout(() => {
+      highlightNode('a');
+    }, 1000)
+
+    setTimeout(() => {
+      highlightNode('b');
+    }, 1500)
+
+    setTimeout(() => {
+      highlightNode('c');
+    }, 2000)
+
+    setTimeout(() => {
+      highlightNode('d');
+    }, 2500)
 
 
-setTimeout(() => {
-  // nodes.push(20);
-  nodes = [20,6,4,1,9];
-  visualiseNewNode(false);
-}, 3000)
-
-// setTimeout(() => {
-//   nodes.push(50);
-//   nodes.push(51);
-//   nodes.push(52);
-//   visualiseNewNode(false);
-// }, 3000)
 
 
-</script>
+    setTimeout(() => {
+      // addLoneNode('f', 7, false);
+      // highlightNode('b');
+      appendNode('e');
+    }, 3000)
+
+    setTimeout(() => {
+      // addNode('232323', 30, false);
+      appendNode('f');
+    }, 5000)
+
+    // setTimeout(() => {
+    //   addNode('434534', 3, false);
+    // }, 3000)
 
 
-
-</body>
+  </script>
 </html>
